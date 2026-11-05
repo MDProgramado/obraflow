@@ -12,6 +12,7 @@ Plataforma full-stack para empresas do setor de construção civil. Gerencia ped
 - [Comunicação front-end ↔ back-end](#comunicação-front-end--back-end)
 - [Consistência e integridade dos dados](#consistência-e-integridade)
 - [Como executar localmente](#como-executar-localmente)
+- [Usando Neon em produção](#usando-neon-em-produção)
 - [Como rodar os testes](#como-rodar-os-testes)
 - [Dados de demonstração](#dados-de-demonstração)
 - [Endpoints da API](#endpoints-da-api)
@@ -173,6 +174,38 @@ BACKEND_URL=http://localhost:8080
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=obraflow-local-dev-secret-change-me-please-32bytes-min
 ```
+
+### Usando Neon em produção
+
+O backend funciona com qualquer PostgreSQL gerenciado, inclusive o [Neon](https://neon.com). Como o Neon exige SSL e fornece uma URL completa, basta sobrescrever a URL do datasource — o `application.yml` aceita tanto `DB_URL` quanto `SPRING_DATASOURCE_URL` (esta última tem precedência por ser variável de ambiente do Spring Boot).
+
+1. No Neon Console, copie a connection string **direta** (sem `-pooler`) da branch principal.
+2. Converta para JDBC e acrescente `sslmode=require`:
+
+```text
+jdbc:postgresql://ep-xxxxxxxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+```
+
+3. Configure as variáveis no serviço do backend (Render, VPS, etc.):
+
+```text
+SPRING_DATASOURCE_URL=jdbc:postgresql://ep-xxxxxxxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+SPRING_DATASOURCE_USERNAME=neondb_owner
+SPRING_DATASOURCE_PASSWORD=npg_xxxxxxxxxxxx
+OBRAFLOW_JWT_SECRET=<segredo com 32+ caracteres>
+```
+
+> Use a URL **direta** (sem `-pooler`) para o backend. O Flyway roda as migrations na inicialização e usa advisory lock de sessão, que não funciona no pooler em modo transação. Se quiser usar o pooler para o tráfego normal, configure uma URL separada para o Flyway (`SPRING_FLYWAY_URL`).
+
+Na primeira subida, o Flyway aplica `V1`–`V3` e o `DemoDataSeeder` popula usuários, obras, faixas e pedidos. Valide com:
+
+```bash
+curl https://<backend>/actuator/health
+```
+
+**Limites do plano gratuito do Neon:** 100 CU-hours por projeto/mês, 1 GB de storage, 5 GB de egress, e o compute é suspenso após 5 minutos de inatividade (o primeiro acesso depois disso paga um cold start). Escolha a região do Neon mais próxima da região do backend para reduzir latência. Se aparecerem erros transitórios de conexão após a suspensão, ajuste o pool do Hikari (`SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE`, `SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT`).
+
+> Para migrar dados existentes de outro Postgres, use `pg_dump`/`pg_restore` com a URL direta do Neon. O dump já inclui o histórico do Flyway, então as migrations não são reaplicadas. Para um ambiente novo, deixe o banco vazio e deixe o Flyway + seed criarem tudo.
 
 ---
 

@@ -3,7 +3,9 @@ spring:
     name: obraflow-backend
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:obraflow}
+    # DB_URL sobrescreve a URL completa (ex.: Neon, que exige ?sslmode=require).
+    # Sem DB_URL, a URL e' montada a partir de DB_HOST/DB_PORT/DB_NAME (Docker local).
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:obraflow}}
     username: ${DB_USER:obraflow}
     password: ${DB_PASS:obraflow}
     hikari:
