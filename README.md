@@ -207,6 +207,19 @@ curl https://<backend>/actuator/health
 
 > Para migrar dados existentes de outro Postgres, use `pg_dump`/`pg_restore` com a URL direta do Neon. O dump já inclui o histórico do Flyway, então as migrations não são reaplicadas. Para um ambiente novo, deixe o banco vazio e deixe o Flyway + seed criarem tudo.
 
+### Deploy no Render: `==> Timed Out`
+
+Se o log mostra `Tomcat started on port 8080` e `Started ObraflowApplication`, mas o deploy termina em `==> Timed Out`, **o banco e o código estão ok**: o Render não conseguiu validar porta/health check a tempo. Aja nesta ordem:
+
+1. **Environment → `PORT=8080`**. O Render espera `10000` por padrão. Sem essa variável ele pode continuar escaneando portas mesmo com o Tomcat já em 8080.
+2. **Settings → Health Checks → Health Check Path = `/actuator/health/readiness`**. Qualquer caminho protegido (ex.: `/`) devolve `401`, e o Render trata como check falho. Se preferir, limpe o campo para voltar ao check TCP.
+3. Confirme que `OBRAFLOW_JWT_SECRET` tem 32+ caracteres — sem isso o app nem sobe.
+4. Faça o redeploy.
+
+O path `/actuator/health/readiness` responde `200` assim que o contexto Spring está pronto, sem depender do banco (evita falha por cold start do Neon). O `/actuator/health` também funciona, mas inclui o check de banco e pode retornar `503` durante o cold start.
+
+**Sobre o tempo de startup:** no plano Free (0.1 CPU / 512 MB) esse Spring Boot levou ~206 s para iniciar. O `backend/Dockerfile` aplica flags de JVM para reduzir isso (`TieredStopAtLevel=1`, `UseSerialGC`, `MaxRAMPercentage`), mas o plano Free **hiberna após 15 min** de inatividade e repete o cold start a cada acesso. Para uso contínuo (inclusive o front-end na Vercel), use no mínimo o plano `Starter` (0.5 CPU) ou o `1c-2g`, recomendado pelo Render para aplicações JVM.
+
 ---
 
 ## 🧪 Como rodar os testes

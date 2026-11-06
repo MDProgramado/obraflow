@@ -56,6 +56,11 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      # Expoe /actuator/health/liveness e /actuator/health/readiness.
+      # Use /actuator/health/readiness como health check do Render: responde
+      # 200 assim que o contexto sobe, sem depender do cold start do banco.
+      probes:
+        enabled: true
 
 springdoc:
   swagger-ui:
