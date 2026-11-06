@@ -1,4 +1,4 @@
-package com.br.obraflow.adapters.outbound.persistencia;
+package com.br.obraflow.adapters.outbound.persistence;
 
 import com.br.obraflow.core.application.port.out.NumeroPedidoPort;
 import org.springframework.jdbc.core.JdbcTemplate;

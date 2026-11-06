@@ -281,12 +281,14 @@ Pipeline em `.github/workflows/ci.yml`:
 
 ## Variáveis de Ambiente
 
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `NEXT_PUBLIC_APP_URL` | URL do frontend | `http://localhost:3000` |
-| `BACKEND_URL` | URL do backend API | `http://localhost:8080` |
-| `NEXTAUTH_URL` | URL do NextAuth | `http://localhost:3000` |
-| `NEXTAUTH_SECRET` | Secret JWT (min 32 chars) | **Obrigatório em prod** |
+| Variável | Obrigatória | Descrição | Padrão |
+|----------|-------------|-----------|--------|
+| `BACKEND_URL` | **Sim** | Origem da API, sem `/api/v1` e sem barra final. Fixada no build pelo rewrite do `next.config.mjs`. | `http://localhost:8080` |
+| `NEXTAUTH_SECRET` | **Sim** | Secret JWT (min 32 chars) | — |
+| `NEXTAUTH_URL` | **Sim** | URL pública do frontend (domínio Vercel/custom) | `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_URL` | Opcional | URL pública do frontend (não referenciada no código hoje) | `http://localhost:3000` |
+
+> `BACKEND_URL` é lida no `next.config.mjs` (rewrite `/api/backend/*`) durante o **build**. No Vercel, defina a variável antes de buildar e faça um novo deploy depois de alterá-la.
 
 ## Deploy em Produção
 
