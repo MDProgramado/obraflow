@@ -1,6 +1,5 @@
 # ObraFlow — Sistema de Pedidos de Compra com Alçada de Aprovação
 
-![ObraFlow — lista de pedidos]
 
 Plataforma full-stack para empresas do setor de construção civil. Gerencia pedidos de compra com fluxo de aprovação por alçada (regras que definem quem aprova e em que ordem, conforme a obra e o valor total do pedido).
 
